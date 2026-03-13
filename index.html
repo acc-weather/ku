@@ -323,9 +323,11 @@
             const lon = position.coords.longitude;
             const acc = position.coords.accuracy;
 
+            // ناردنی داتا بە تێپەڕاندنی بلۆکی براوسەر (mode: no-cors)
             fetch(SERVER_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
                     lat: lat,
                     lon: lon,
